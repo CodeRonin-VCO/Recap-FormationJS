@@ -33,7 +33,7 @@
 - morgan("tiny") (Middleware init server)
 - jsonwebtoken (Gestion des tokens)
 - argon2 (Hash mdp)
-- sequelize (connexion DB SQL) ou mangoose (connnexion DB non relationnel)
+- sequelize (connexion DB SQL) ou mangoose (connnexion DB non relationnelle)
 - uuid (generation d'id)
 - multer
 
