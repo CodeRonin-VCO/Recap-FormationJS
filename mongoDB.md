@@ -81,11 +81,11 @@ $group:
 ## __Méthodes__
 ```
 db.movies.find({"filtres"}, {"sélection"})
-  .toArray() → Tous les éléments
-  .sort() → trier
-  .skip() → passer x éléments
-  .limit() → limiter les résultats à x éléments
-  .count() → compter le nombre d'éléments
+  .toArray()  → Tous les éléments
+  .sort()     → trier
+  .skip()     → passer x éléments
+  .limit()    → limiter les résultats à x éléments
+  .count()    → compter le nombre d'éléments
 ```
 ## Connexion avec Mangoose
 Exemple:
