@@ -1,7 +1,7 @@
 # LocalStorage
 
 ## Save data
-localStorage.setItem("key", "");
+localStorage.setItem("key", "value");
 
 ## Get data
 localStorage.getItem("key");
