@@ -36,6 +36,7 @@
 - sequelize (connexion DB SQL) ou mangoose (connnexion DB non relationnelle)
 - uuid (generation d'id)
 - multer
+- cors
 
 ## Package.json → scripts
 ```
