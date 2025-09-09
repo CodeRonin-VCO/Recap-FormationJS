@@ -1,8 +1,10 @@
-// Save data
+# LocalStorage
+
+## Save data
 localStorage.setItem("key", "");
 
-// Get data
+## Get data
 localStorage.getItem("key");
 
-// Remove data
+## Remove data
 localStorage.removeItem("key");
