@@ -46,3 +46,10 @@
 "init-db": "node --env-file=.env src/init-db.js"
 }
 ```
+
+## Documentation
+- React: https://fr.react.dev/
+- Next.js : https://nextjs.org/
+- Node.js : https://nodejs.org/fr
+- Express.js : https://expressjs.com/
+- NPM : https://www.npmjs.com/
