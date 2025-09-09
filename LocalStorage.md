@@ -14,5 +14,7 @@ localStorage.clear();
 
 
 # Exemples
+```
 localStorage.setItem("user", JSON.stringify({ name: "Vincent", age: 30 }));
 const user = JSON.parse(localStorage.getItem("user")); // → output: { name: "Vincent", age: 30 };
+```
