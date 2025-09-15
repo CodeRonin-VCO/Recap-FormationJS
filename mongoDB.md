@@ -1,5 +1,10 @@
 # Récap MongoDB/Mongoose
 
+## Créer une nouvelle base de données dans Docker
+```
+docker run --name donkey-mongodb -d -p 27017:27017 mongo
+```
+
 ## Créer une collection
 ```
 db.createCollection("name of the table/collection");
