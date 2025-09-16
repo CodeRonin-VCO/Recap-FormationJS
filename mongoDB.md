@@ -93,62 +93,152 @@ db.movies.find({"filtres"}, {"sélection"})
   .count()    → compter le nombre d'éléments
 ```
 ## Connexion avec Mangoose
-Exemple:
+### Connection locale à mongodb
 ```
-// == Importer la BD
-import Mongoose from "Mongoose";
+mongodb://localhost:27017
+```
 
-// == Connection à la BD de mongo
-Mongoose.connect('mongodb://localhost/demo');
+### Connection distance à mongodb
+```
+mongodb://user:password@domain:27017
+```
 
-// == Définir le schéma
-const MoviesSchema = Mongoose.Schema({
-    title: String,
-    year: Number,
-    score: Number,
-    genre: [String],
-    actor: [String]
-});
+# Exemple de mise en place d'un DB avec mongoose:
+## Dans un fichier config/init-db.js
+```
+import mongoose from 'mongoose';
+import models from '../models/index.js';
+import fs from "fs";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// == Créer un modèle
-const Movies = new Mongoose.model('movies', MoviesSchema);
 
-// == Faire des requêtes
-// const movies = await Movies.find({ year:1994 }, { title: 1 });
-const moviesByGenre = await Movies.aggregate([
-    {
-        $unwind: '$genre'
-    },
-    {
-        $group: { _id: '$genre', titles: {$push: '$title'}}
+// ==== Get env data ====
+const { DB_DATABASE, DB_USER, DB_PASSWORD, DB_SERVER, DB_PORT } = process.env;
+
+
+const uri = `mongodb://${DB_USER ? DB_USER + ':' + DB_PASSWORD + '@' : ''}${DB_SERVER}:${DB_PORT}/${DB_DATABASE}`;
+
+// ==== Init mangoose ====
+const connectDB = async () => {
+    try {
+        mongoose.connect(uri)
+        console.log(`MongoDB connected`);
+
+    } catch (error) {
+        console.log(`Error mongoDB`, error.message);
+        process.exit(1);
     }
-])
+};
 
-console.log(moviesByGenre.map(g => ({ genre: g._id, count: g.titles.length })));
-```
+// ==== Synchronize ====
+const initDB = async () => {
+    try {
+        await connectDB();
 
-# Exemple Schéma
-```
-{
-    "type": "object",
-    "required": ["nomProduit", "prix", "reference", "categorie", "tags", "commentaires"],
-    "properties": {
-        "nomProduit": { "type": "string", "minLength": 3, "maxLength": 100 },
-        "prix": { "type": "number", "multipleOf": 0.01, "exclusiveMinimum": 0, "maximum": 9999 },
-        "reference": { "type": "string", "minLength": 10, "maxLength": 10, "pattern": "^\\d{10}$" },
-        "categorie": { "enum": ["Boisson", "Viande", "Légumes"] },
-        "tags": { "type": "array", "items": {"type": "string", "maxLength": 255}, "maxItems": 10, "uniqueItems": true },
-        "commentaires": { 
-            "type": "array", 
-            "prefixItems": [
-                { "type": "string" },
-                { "type": "string" },
-                { "type": "string" }
-            ]
+        const {User, Post} = models;
+
+        // Load fake data (json)
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+
+        const usersPath = path.join(__dirname, "./../data/users.json");
+        const postsPath = path.join(__dirname, "./../data/posts.json");
+
+        // Read json files
+        const usersRaw = fs.readFileSync(usersPath, "utf-8");
+        const postsRaw = fs.readFileSync(postsPath, "utf-8");
+
+        // Parse json files
+        const usersData = JSON.parse(usersRaw);
+        const postsData = JSON.parse(postsRaw);
+
+        // Insert users if none exists
+        const userCount = await User.countDocuments();
+        if (userCount === 0) {
+            const insertedUsers = await User.insertMany(usersData.users);
+            console.log(`Users inserted:`, insertedUsers.map(u => u.email));
+        };
+
+        // Insert posts if none exists
+        const postCount = await Post.countDocuments();
+        if (postCount === 0) {
+            const insertedPosts = await Post.insertMany(postsData.posts);
+            console.log(`Posts inserted:`, insertedPosts.map(p => p.id));
         }
-    }
+
+        console.log(`Database initialization complete`);
+
+        
+    } catch (error) {
+        console.error("Database initialization error :", error.message);
+        process.exit(1);
+    };
+};
+
+export {
+    connectDB,
+    initDB
 }
 ```
+## Dans le dossier models (schéma)
+### index.js
+```
+// Import db model DB here
+import { Post } from "./posts.model.js";
+import { User } from "./user.model.js";
+
+export default {
+    User,
+    Post
+};
+
+```
+### posts.model.js
+```
+import mongoose from 'mongoose';
+
+const postSchema = new mongoose.Schema({
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    content: { type: String, required: true },
+    images: [{ type: String }],
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    comments: [{
+        author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        text: String,
+        date: { type: Date, default: Date.now }
+    }],
+    tags: [{ type: String }]
+}, { timestamps: true });
+
+export const Post = mongoose.model('Post', postSchema);
+```
+### users.model.js
+```
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema({
+    firstname: { type: String, required: true },
+    lastname: { type: String, required: true },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        validate: {
+            validator: (v) => /^\S+@\S+\.\S+$/.test(v),
+            message: props => `${props.value} n'est pas un email valide !`
+        }
+    },
+    password: { type: String, required: true },
+    avatar: { type: String }, // URL ou nom de fichier
+    bio: { type: String },
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+}, { timestamps: true });
+
+
+export const User = mongoose.model("User", userSchema);
+```
+
 # Exemple insertion de données
 ```
 db.produits.insertOne({
