@@ -239,6 +239,29 @@ const userSchema = new mongoose.Schema({
 export const User = mongoose.model("User", userSchema);
 ```
 
+### Exemple de requête
+```
+getPost: async (req, res) => {
+
+        //? recupérer les posts sans l'auteur
+        // const posts = await Post.find();
+
+        //? recupérer les posts avec l'auteur en entier
+        // const posts = await Post.find().populate('author');
+
+        //? recupérer les posts avec l'auteur pas en entier
+        const posts = await Post.aggregate([
+            { $lookup: { from: 'users', localField: 'author', foreignField: '_id', as: 'author' } },
+            { $unwind: '$author' },
+            { $project: {
+                'author.password': 0
+            } }
+        ])
+
+        res.status(201).json({ message: "Posts successfully retrieved.", posts });
+    },    
+```
+
 # Exemple insertion de données
 ```
 db.produits.insertOne({
